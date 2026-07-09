@@ -1,0 +1,103 @@
+{
+    "name":  "pet_mri_dsdfuse_lightcoop_test",
+    "phase":  "test",
+    "gpu_ids":  [
+                    0
+                ],
+    "distributed":  false,
+    "datasets":  {
+                     "centered":  true,
+                     "test":  {
+                                  "name":  "dataset_test",
+                                  "crop_size":  256,
+                                  "dataroot_structure":  "./dataset/test/Med/PET-MRI/MRI/",
+                                  "dataroot_function":  "./dataset/test/Med/PET-MRI/PET/",
+                                  "batch_size":  1,
+                                  "num_workers":  0
+                              }
+                 },
+    "model":  {
+                  "fusion_task":  "PET-MRI",
+                  "finetune_norm":  true,
+                  "Unet":  {
+                               "LDM":  "U_LDM",
+                               "in_ch":  1,
+                               "out_ch":  1,
+                               "LDM_embed_dim":  8,
+                               "LDM_ch":  64,
+                               "ch_mult":  [
+                                               1,
+                                               2,
+                                               4
+                                           ]
+                           },
+                  "Fusion":  {
+                                 "sample_selected":  "ddp-solver++",
+                                 "model_selected":  "DSDFuse",
+                                 "mode":  "MAX",
+                                 "inference_steps":  4,
+                                 "num_train_timesteps":  1000,
+                                 "channel_emdin":  8,
+                                 "num_blocks":  [
+                                                    1,
+                                                    1,
+                                                    1,
+                                                    1
+                                                ],
+                                 "heads":  [
+                                               1,
+                                               2,
+                                               4,
+                                               8
+                                           ],
+                                 "feat_channels":  [
+                                                       16,
+                                                       32,
+                                                       64,
+                                                       128
+                                                   ],
+                                 "efficiency":  {
+                                                    "lightweight_dsb":  {
+                                                                            "enabled":  true,
+                                                                            "mamba_stage_mask":  [
+                                                                                                     false,
+                                                                                                     false,
+                                                                                                     true,
+                                                                                                     true
+                                                                                                 ],
+                                                                            "mamba_d_state":  8,
+                                                                            "mamba_d_conv":  3,
+                                                                            "mamba_expand":  1,
+                                                                            "mamba_bidirectional":  false,
+                                                                            "ffn_expansion":  1.5
+                                                                        },
+                                                    "process_bank":  {
+                                                                         "enabled":  true,
+                                                                         "select_stages":  [
+                                                                                               1,
+                                                                                               2,
+                                                                                               3
+                                                                                           ],
+                                                                         "max_features":  3,
+                                                                         "summary_mode":  "average",
+                                                                         "collect_after":  "rb"
+                                                                     },
+                                                    "ms_rgsf_head":  {
+                                                                         "enabled":  true,
+                                                                         "dim":  16,
+                                                                         "max_bank_features":  3,
+                                                                         "bank_select_stages":  [
+                                                                                                    1,
+                                                                                                    2,
+                                                                                                    3
+                                                                                                ],
+                                                                         "bank_aggregation":  "scale_softmax",
+                                                                         "guidance_weight":  0.2,
+                                                                         "temperature":  1,
+                                                                         "use_depthwise_refine":  true,
+                                                                         "use_concat_out":  false
+                                                                     }
+                                                }
+                             }
+              }
+}

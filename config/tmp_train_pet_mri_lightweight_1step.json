@@ -1,0 +1,167 @@
+{
+    "name":  "tmp_train_pet_mri_lightweight_1step",
+    "phase":  "train",
+    "gpu_ids":  [
+                    0
+                ],
+    "distributed":  false,
+    "display_port":  8097,
+    "seed":  3407,
+    "path":  {
+                 "log":  "experiments/tmp/lightweight_1step/logs",
+                 "tb_logger":  "experiments/tmp/lightweight_1step/tb_logger",
+                 "results":  "experiments/tmp/lightweight_1step/results",
+                 "checkpoint":  "experiments/tmp/lightweight_1step/checkpoint",
+                 "resume_state":  null
+             },
+    "datasets":  {
+                     "centered":  true,
+                     "train":  {
+                                   "name":  "dataset",
+                                   "crop_size":  256,
+                                   "dataroot_structure":  "./dataset/train/Med/PET-MRI/MRI/",
+                                   "dataroot_function":  "./dataset/train/Med/PET-MRI/PET/",
+                                   "batch_size":  1,
+                                   "num_workers":  0,
+                                   "use_shuffle":  true,
+                                   "is_crop":  false
+                               },
+                     "val":  {
+                                 "name":  "dataset_val",
+                                 "crop_size":  256,
+                                 "dataroot_structure":  "./dataset/test/Med/PET-MRI/MRI/",
+                                 "dataroot_function":  "./dataset/test/Med/PET-MRI/PET/",
+                                 "batch_size":  1,
+                                 "num_workers":  0,
+                                 "use_shuffle":  false,
+                                 "is_crop":  false
+                             }
+                 },
+    "model":  {
+                  "fusion_task":  "PET-MRI",
+                  "finetune_norm":  true,
+                  "ablation":  {
+                                   "mode":  "full"
+                               },
+                  "Unet":  {
+                               "LDM":  "U_LDM",
+                               "in_ch":  1,
+                               "out_ch":  1,
+                               "LDM_embed_dim":  8,
+                               "LDM_ch":  64,
+                               "ch_mult":  [
+                                               1,
+                                               2,
+                                               4
+                                           ]
+                           },
+                  "Fusion":  {
+                                 "sample_selected":  "ddp-solver++",
+                                 "model_selected":  "DSDFuse",
+                                 "mode":  "MAX",
+                                 "inference_steps":  4,
+                                 "num_train_timesteps":  1000,
+                                 "channel_emdin":  8,
+                                 "num_blocks":  [
+                                                    1,
+                                                    1,
+                                                    1,
+                                                    1
+                                                ],
+                                 "heads":  [
+                                               1,
+                                               2,
+                                               4,
+                                               8
+                                           ],
+                                 "feat_channels":  [
+                                                       16,
+                                                       32,
+                                                       64,
+                                                       128
+                                                   ],
+                                 "efficiency":  {
+                                                    "adaptive_inference":  {
+                                                                               "enabled":  false,
+                                                                               "min_inference_steps":  3,
+                                                                               "step_reduction":  1,
+                                                                               "complexity_threshold":  0.04
+                                                                           },
+                                                    "structure_gated_residual":  {
+                                                                                     "enabled":  true,
+                                                                                     "init_gate_bias":  -1.2,
+                                                                                     "loss_weight":  0.05
+                                                                                 },
+                                                    "lightweight_dsb":  {
+                                                                            "enabled":  true,
+                                                                            "mamba_stage_mask":  [
+                                                                                                     false,
+                                                                                                     false,
+                                                                                                     true,
+                                                                                                     true
+                                                                                                 ],
+                                                                            "mamba_d_state":  8,
+                                                                            "mamba_d_conv":  3,
+                                                                            "mamba_expand":  1,
+                                                                            "mamba_bidirectional":  false,
+                                                                            "ffn_expansion":  1.5
+                                                                        },
+                                                    "process_bank":  {
+                                                                         "enabled":  true,
+                                                                         "select_stages":  [
+                                                                                               1,
+                                                                                               2,
+                                                                                               3
+                                                                                           ],
+                                                                         "max_features":  3,
+                                                                         "summary_mode":  "average",
+                                                                         "collect_after":  "rb"
+                                                                     },
+                                                    "ms_rgsf_head":  {
+                                                                         "enabled":  true,
+                                                                         "dim":  16,
+                                                                         "max_bank_features":  3,
+                                                                         "bank_select_stages":  [
+                                                                                                    1,
+                                                                                                    2,
+                                                                                                    3
+                                                                                                ],
+                                                                         "bank_aggregation":  "scale_softmax",
+                                                                         "guidance_weight":  0.2,
+                                                                         "temperature":  1,
+                                                                         "use_depthwise_refine":  true,
+                                                                         "use_concat_out":  false
+                                                                     }
+                                                }
+                             }
+              },
+    "train":  {
+                  "n_epoch":  1,
+                  "val_freq":  999,
+                  "val_epoch_freq":  999,
+                  "save_checkpoint_epoch":  999,
+                  "save_best_metric":  "val_loss",
+                  "save_best_mode":  "min",
+                  "val_seed":  1234,
+                  "print_freq":  1,
+                  "ema_decay":  0.999,
+                  "warmup_iter":  -1,
+                  "scheduler":  {
+                                    "type":  "CosineAnnealingRestartCyclicLR",
+                                    "periods":  [
+                                                    60
+                                                ],
+                                    "restart_weights":  [
+                                                            1.0
+                                                        ],
+                                    "eta_mins":  [
+                                                     0.000001
+                                                 ]
+                                },
+                  "optimizer":  {
+                                    "type":  "AdamW",
+                                    "lr":  0.00005,
+                                    "weight_decay":  0.0001
+                                }
+              }
+}

@@ -1,0 +1,16 @@
+torch
+torchvision
+numpy
+Pillow
+opencv-python==4.8.1.78
+imageio==2.31.4
+matplotlib==3.8.0
+scipy==1.11.3
+scikit-image==0.21.0
+sewar==0.4.4
+tqdm==4.66.1
+einops==0.7.0
+dominate==2.9.1
+mmengine==0.10.2
+packaging
+pystrum
