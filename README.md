@@ -47,9 +47,7 @@ DSDFuse contains four main components:
 
 Additional module figures:
 
-| RGSF head | SGRR module |
-| --- | --- |
-| ![RGSF head](assets/rgsf_head.png) | ![SGRR module](assets/sgrr.png) |
+![RGSF head and SGRR module](assets/module_figures.png)
 
 ## Quick Start
 
@@ -245,9 +243,7 @@ PowerShell versions are also provided for Windows users.
 
 ## Qualitative Examples
 
-| PET-MRI | SPECT-MRI |
-| --- | --- |
-| ![PET-MRI comparison](assets/pet_mri_comparison.png) | ![SPECT-MRI comparison](assets/spect_mri_comparison.png) |
+![Qualitative examples on PET-MRI and SPECT-MRI](assets/qualitative_examples.png)
 
 ## Metrics
 
